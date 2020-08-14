@@ -1,0 +1,184 @@
+﻿@page "/queue"
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@inject IJSRuntime JSRuntime
+
+<h1>Queue</h1>
+
+<EditForm Model="@queueModel" OnValidSubmit="CreateQueue" @attributes="formAttributes">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText id="queueName" @bind-Value="queueModel.Name" @attributes="queueNameAttributes" />
+    &nbsp;
+    <button type="submit" class="btn btn-info">Create</button>
+</EditForm>
+
+<div id="alertDanger" class="alert alert-danger fade show" style="visibility:hidden">
+    <strong><span id="alertDangerStrong"></span></strong> <span id="alertDangerText"></span>
+</div>
+
+
+@if (queueCreated)
+{
+    <div class="card p-3">
+        <dl>
+            <dt>Queue created:</dt>
+            <dd>@queueModel.Name</dd>
+
+            <dt>Queue length:</dt>
+            <dd>@queueLength</dd>
+        </dl>
+
+        <div class="card-footer">
+            <button class="btn btn-danger" @onclick="ClearQueue">Clear all messages</button>
+            &nbsp;
+            <button class="btn btn-danger" @onclick="DeleteQueue">Delete queue</button>
+        </div>
+    </div>
+
+    <div class="p-3"><!-- Spacer --></div>
+
+    <h3>Messages</h3>
+    <div class="d-flex p-3 bg-secondary text-white">
+        <EditForm Model="@queueMessage" OnValidSubmit="AddMessage" @attributes="formAttributes">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <InputText id="queueMessage" @bind-Value="queueMessage.Text" @attributes="queueMessageAttributes" />
+            &nbsp;
+            <button type="submit" class="btn btn-info">Add</button>
+        </EditForm>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Text</th>
+                <th>Created On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var msg in queueMessages)
+            {
+                <tr>
+                    <td>
+                        <div id="textQueueMessage_@msg.Id" style="visibility:visible">@msg.Text</div>
+                        <div id="formEditQueueMessage_@msg.Id" style="visibility:hidden" class="d-flex text-white">
+                            <input type="text" id="editQueueMessage_@msg.Id" class="form-control" value="@msg.Text" />
+                            &nbsp;
+                            <button type="button" class="btn btn-warning" @onclick="(() => EditMessage(msg.Id))">Update</button>
+                        </div>
+                    </td>
+                    <td>@msg.CreatedOn</td>
+                    <td>
+                        <button type="button" class="btn btn-warning" @onclick="(() => DeleteMessage(msg.Id))">Delete</button>
+                        &nbsp;
+                        <button type="button" class="btn btn-warning" @onclick="(() => ToggleMessageVisibility(msg.Id))">Edit</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private Models.Queue queueModel = new Models.Queue();
+    private Models.QueueMessage queueMessage = new Models.QueueMessage();
+    private IList<Models.QueueMessage> queueMessages;
+    private bool queueCreated = false;
+    private int queueLength = 0;
+
+    private AzureStorage.Queue.QueueManager manager;
+    private AzureStorage.Queue.Queue queue;
+
+    private async Task CreateQueue()
+    {
+        try
+        {
+            manager = new AzureStorage.Queue.QueueManager(Configuration["Queue:ConnectionString"]);
+            queue = await manager.CreateQueueAsync(queueModel.Name);
+
+            queueCreated = true;
+
+            queueMessages = new List<Models.QueueMessage>();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("JavaScriptFunctions.alertDanger", ex.Message, queueModel.Name);
+        }
+
+
+        //queueMessages = from msg in queue.PeekMessagesAsync(10).Result
+        //                select new Models.QueueMessage
+        //                {
+        //                    Id = msg.Id,
+        //                    Text = msg.Text,
+        //                    CreatedOn = msg.InsertionTime
+        //                };
+    }
+
+    private async Task AddMessage()
+    {
+        queueMessages.Add(new Models.QueueMessage
+        {
+            Id = Guid.NewGuid().ToString(),
+            Text = queueMessage.Text,
+            CreatedOn = DateTimeOffset.Now
+        });
+
+        queueLength++;
+    }
+
+    private async Task EditMessage(string id)
+    {
+        var msg = queueMessages.Single(m => m.Id == id);
+        string value = await JSRuntime.InvokeAsync<string>("JavaScriptFunctions.getValue", "editQueueMessage_" + id);
+        msg.Text = value;
+
+        await JSRuntime.InvokeVoidAsync("QueueFunctions.toggleMessageText", id);
+    }
+
+    private async Task ToggleMessageVisibility(string id)
+    {
+        await JSRuntime.InvokeVoidAsync("QueueFunctions.toggleMessageText", id);
+    }
+
+    private async Task DeleteMessage(string id)
+    {
+        queueMessages.Remove(queueMessages.Single(m => m.Id == id));
+        queueLength--;
+    }
+
+    private async Task ClearQueue()
+    {
+        queueMessages.Clear();
+        queueLength = 0;
+    }
+
+    private async Task DeleteQueue()
+    {
+        ClearQueue();
+        queueCreated = false;
+    }
+
+    private IDictionary<string, object> formAttributes = new Dictionary<string, object>
+    {
+        ["class"] = "form-inline p-3"
+    };
+
+    private IDictionary<string, object> queueNameAttributes = new Dictionary<string, object>
+    {
+        ["placeholder"] = "Queue name",
+        ["required"] = "required",
+        ["class"] = "form-control"
+    };
+
+    private IDictionary<string, object> queueMessageAttributes = new Dictionary<string, object>
+    {
+        ["placeholder"] = "Message text",
+        ["required"] = "required",
+        ["class"] = "form-control"
+    };
+}
