@@ -29,6 +29,21 @@ namespace AzureStorage.Queue
             return queue;
         }
 
+        public async Task<Queue> GetQueueAsync(string name)
+        {
+            string key = name.ToLowerInvariant();
+
+            return await ExistsQueueAsync(name) ? _queues[key] : null;
+        }
+
+        public async IAsyncEnumerable<Queue> GetAllQueuesAsync()
+        {
+            foreach (var q in _queues.Values)
+            {
+                yield return await GetQueueAsync(q.Name);
+            }
+        }
+
         public async Task<bool> DeleteQueueAsync(string name)
         {
             string key = name.ToLowerInvariant();

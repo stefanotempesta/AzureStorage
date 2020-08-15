@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <title>@ViewData["Title"] - Azure Storage</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/open-iconic/font/css/open-iconic-bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <app>
+        <div class="sidebar">
+            <div class="top-row pl-4 navbar navbar-dark">
+                <a class="navbar-brand" href="">Azure Storage</a>
+                <button class="navbar-toggler">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+            <div>
+                <ul class="nav flex-column">
+                    <li class="nav-item px-3">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index"><span class="oi oi-home" aria-hidden="true"></span> Home</a>
+                    </li>
+                    <li class="nav-item px-3">
+                        <a class="nav-link" asp-controller="Queue" asp-action="Index"><span class="oi oi-layers" aria-hidden="true"></span> Queue</a>
+                    </li>
+                    <li class="nav-item px-3">
+                        <a class="nav-link" asp-controller="ServiceBus" asp-action="Index"><span class="oi oi-list-rich" aria-hidden="true"></span> Service Bus</a>
+                    </li>
+                    <li class="nav-item px-3">
+                        <a class="nav-link" asp-controller="EventHub" asp-action="Index"><span class="oi oi-flash" aria-hidden="true"></span> Event Hub</a>
+                    </li>
+                    <li class="nav-item px-3">
+                        <a class="nav-link" asp-controller="EventGrid" asp-action="Index"><span class="oi oi-grid-four-up" aria-hidden="true"></span> Event Grid</a>
+                    </li>
+                    <li class="nav-item px-3">
+                        <a class="nav-link" asp-controller="AppConfiguration" asp-action="Index"><span class="oi oi-copywriting" aria-hidden="true"></span> App Configuration</a>
+                    </li>
+                    <li class="nav-item px-3">
+                        <a class="nav-link" asp-controller="KeyVault" asp-action="Index"><span class="oi oi-key" aria-hidden="true"></span> Key Vault</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="content px-4">
+                @RenderBody()
+            </div>
+        </div>
+    </app>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2020 - <a href="http://www.tempesta.space" target="_blank">Stefano Tempesta</a>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

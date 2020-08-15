@@ -1,0 +1,101 @@
+﻿@using AzureStorage.Web.Models
+@model Queue
+
+@{
+    ViewData["Title"] = "Queue";
+}
+<h2>@ViewData["Title"]</h2>
+
+@using (Html.BeginForm("CreateQueue", "Queue", FormMethod.Post, htmlAttributes: new { @class = "form-inline p-3" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div>
+        <input asp-for="Name" class="form-control" placeholder="Queue name" required />
+    </div>
+    <span>&nbsp;</span>
+    <div>
+        <input type="submit" value="Create" class="btn btn-info" />
+    </div>
+}
+
+@if (Model != Queue.Null)
+{
+    <div class="card p-3">
+        <dl>
+            <dt>Queue created:</dt>
+            <dd>@Model.Name</dd>
+
+            <dt>Queue length:</dt>
+            <dd>@Model.Length</dd>
+        </dl>
+
+        <div class="card-footer d-flex bg-transparent">
+            @using (Html.BeginForm("ClearQueue", "Queue", FormMethod.Post, htmlAttributes: new { @class = "form-inline p-3" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.Name)
+
+                <input type="submit" value="Clear all messages" class="btn btn-danger" />
+            }
+            &nbsp;
+            @using (Html.BeginForm("DeleteQueue", "Queue", FormMethod.Post, htmlAttributes: new { @class = "form-inline p-3" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.Name)
+
+                <input type="submit" value="Delete queue" class="btn btn-danger" />
+            }
+        </div>
+    </div>
+
+    <div class="p-3"><!-- Spacer --></div>
+
+    <h3>Messages</h3>
+    <div class="d-flex p-3 bg-secondary text-white">
+        @using (Html.BeginForm("AddMessage", "Queue", FormMethod.Post, htmlAttributes: new { @class = "form-inline p-3" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.Name)
+
+            <div>
+                <input id="messageText" name="messageText" class="form-control" placeholder="Message text" required />
+            </div>
+            <span>&nbsp;</span>
+            <div>
+                <input type="submit" value="Add" class="btn btn-info" />
+            </div>
+        }
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Text</th>
+                <th>Created On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var msg in Model.Messages)
+            {
+                <tr>
+                    <td>
+                        <div id="textQueueMessage_@msg.Id" style="visibility:visible">@msg.Text</div>
+                        <div id="formEditQueueMessage_@msg.Id" style="visibility:hidden" class="d-flex text-white">
+                            <input type="text" id="editQueueMessage_@msg.Id" class="form-control" value="@msg.Text" />
+                            &nbsp;
+                            <button type="button" class="btn btn-warning" onclick="(() => EditMessage(msg.Id))">Update</button>
+                        </div>
+                    </td>
+                    <td>@msg.CreatedOn</td>
+                    <td>
+                        <button type="button" class="btn btn-warning" onclick="(() => DeleteMessage(msg.Id))">Delete</button>
+                        &nbsp;
+                        <button type="button" class="btn btn-warning" onclick="(() => ToggleMessageVisibility(msg.Id))">Edit</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

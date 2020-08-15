@@ -1,4 +1,5 @@
 using AzureStorage.Queue;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Net;
 using System.Threading;
@@ -17,9 +18,13 @@ namespace AzureStorage.Tests
         [TestInitialize]
         public void Initialize()
         {
-            const string ConnectionString = @"DefaultEndpointsProtocol=https;AccountName=turboqueue;AccountKey=hOowligNdujHZ76+Eu/On5QcNWHQloF9KgvsRoBWUhCMjaMlpV14ju0eMcxSbOxAHBMuTpxGnYMVTfHpi9Xrgw==;EndpointSuffix=core.windows.net";
+            var config = new ConfigurationBuilder()
+                .AddUserSecrets<QueueTest>()
+                .Build();
             
-            manager = new QueueManager(ConnectionString);
+            string connectionString = config["Queue:ConnectionString"];
+
+            manager = new QueueManager(connectionString);
             queue = manager.CreateQueueAsync(queueName).Result;
 
             Assert.IsNotNull(queue);

@@ -19,6 +19,14 @@ namespace AzureStorage.Queue
             return instance;
         }
 
+        internal static async Task<Queue> OpenAsync(string connectionString, string name)
+        {
+            Queue instance = new Queue();
+            await instance.InitializeAsync(connectionString, name);
+
+            return instance;
+        }
+
         private Queue()
         {
         }

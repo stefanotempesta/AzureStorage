@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>433db576-7d4f-4465-b53b-2681a473fad2</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AzureStorage.Queue\AzureStorage.Queue.csproj" />
+  </ItemGroup>
+
+</Project>
